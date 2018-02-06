@@ -8,9 +8,14 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='pandoc-glosses',
+    name='pangloss',
     version='0.1.0',
     description='A pandoc filter for interlinear glosses',
     long_description=long_description,
-    packages=find_packages(exclude=['contrib', 'docs', 'tests'])
+    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    entry_points={
+        'console_scripts': [
+            'pangloss = pangloss.panglosss:main'
+            ]
+        }
     )
