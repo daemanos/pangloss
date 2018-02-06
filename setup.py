@@ -15,7 +15,7 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     entry_points={
         'console_scripts': [
-            'pangloss = pangloss.panglosss:main'
+            'pangloss = pangloss.pangloss:main'
             ]
         }
     )
