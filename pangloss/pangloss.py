@@ -3,6 +3,7 @@
 import re
 import panflute as pf
 from itertools import groupby
+from collections import OrderedDict
 
 label_re = re.compile(r'\{#ex:(\w+)\}')
 
@@ -24,6 +25,17 @@ def smallcapify(s):
     return re.sub(r"[\w']+", repl, s)
 
 
+def break_plain(plain):
+    """
+    Break a Plain element with SoftBreaks into a list of Para elements.
+    """
+    is_break = lambda el: isinstance(el, pf.SoftBreak)
+    content = list(plain.content)
+
+    # group sequences of non-breaks together as paragraphs and throw out breaks
+    return [pf.Para(*list(g)) for k, g in groupby(content, is_break) if not k]
+
+
 def output_gb4e(lst):
     """
     Convert an example list into a series of gb4e-formatted interlinear
@@ -39,9 +51,7 @@ def output_gb4e(lst):
 
     latex = "\\begin{exe}\n"
     for li in lst.content:
-        is_break = lambda x: isinstance(x, pf.SoftBreak)
-        content = list(li.content[0].content)
-        lines = [pf.Para(*list(g)) for k, g in groupby(content, is_break) if not k]
+        lines = break_plain(li.content[0])
 
         if len(lines) == 3:
             latex += "\\ex"
@@ -67,13 +77,26 @@ def output_gb4e(lst):
     return pf.RawBlock(latex, format='latex')
 
 
+def gloss_div(paras):
+    """Create a Div element with the data-gloss attribute."""
+    return pf.Div(pf.Plain(*paras), attributes=OrderedDict({'data-gloss': ''}))
+
+
 def output_leipzigjs(lst):
     """
-    Convert an eample list into a series of div's suitable for use with
-    leipzigjs.
+    Convert an example list into a series of div's suitable for use with
+    Leipzig.js.
     """
+    html = ''
+    for li in lst.content:
+        html += '<div data-gloss>\n'
+        for line in break_plain(li.content[0]):
+            html += ('<p>' + pf.stringify(line) + '</p>\n')
 
-    pass # TODO
+        html += '</div>\n'
+
+    return pf.RawBlock(html, format='html')
+    #return [gloss_div(break_plain(li.content[0])) for li in lst.content]
 
 
 formats = {
