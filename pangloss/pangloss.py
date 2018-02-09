@@ -7,6 +7,14 @@ from collections import OrderedDict
 
 label_re = re.compile(r'\{#ex:(\w+)\}')
 
+leipzigjs_fmt = '''
+<div data-gloss>
+<p>{}</p>
+<p>{}</p>
+<p>‘{}’</p>
+</div>
+'''
+
 def smallcapify(s):
     """
     Convert words in a string that are in all caps to use small caps, via the
@@ -77,26 +85,21 @@ def output_gb4e(lst):
     return pf.RawBlock(latex, format='latex')
 
 
-def gloss_div(paras):
-    """Create a Div element with the data-gloss attribute."""
-    return pf.Div(pf.Plain(*paras), attributes=OrderedDict({'data-gloss': ''}))
-
-
 def output_leipzigjs(lst):
     """
     Convert an example list into a series of div's suitable for use with
     Leipzig.js.
     """
+
     html = ''
     for li in lst.content:
-        html += '<div data-gloss>\n'
-        for line in break_plain(li.content[0]):
-            html += ('<p>' + pf.stringify(line) + '</p>\n')
+        lines = break_plain(li.content[0])
+        if len(lines) != 3: continue
 
-        html += '</div>\n'
+        orig, gloss, trans = map(pf.stringify, lines)
+        html += leipzigjs_fmt.format(orig, gloss, trans)
 
     return pf.RawBlock(html, format='html')
-    #return [gloss_div(break_plain(li.content[0])) for li in lst.content]
 
 
 formats = {
