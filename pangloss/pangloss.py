@@ -3,17 +3,32 @@
 import re
 import panflute as pf
 from itertools import groupby
+from functools import partial
 from collections import OrderedDict
 
 label_re = re.compile(r'\{#ex:(\w+)\}')
 
-leipzigjs_fmt = '''
+leipzigjs_fmt = """
 <div data-gloss>
 <p>{}</p>
 <p>{}</p>
 <p>‘{}’</p>
 </div>
-'''
+"""
+
+gb4e_fmt_labelled = """
+\\ex\\label{{ex:{label}}}
+\\gll {} \\\\
+{} \\\\
+\\trans `{}' \\\\
+"""
+
+gb4e_fmt = """
+\\ex
+\\gll {} \\\\
+{} \\\\
+\\trans `{}' \\\\
+"""
 
 def smallcapify(s):
     """
@@ -60,26 +75,19 @@ def output_gb4e(lst):
     latex = "\\begin{exe}\n"
     for li in lst.content:
         lines = break_plain(li.content[0])
+        if len(lines) != 3: continue
 
-        if len(lines) == 3:
-            latex += "\\ex"
+        orig, gloss, trans = map(partial(pf.stringify, newlines=False), lines)
+        gloss = smallcapify(gloss)
 
-            orig = pf.stringify(lines[0], newlines = False)
-            gloss = smallcapify(pf.stringify(lines[1], newlines = False))
+        label_match = label_re.search(trans)
+        if label_match:
+            label = label_match.group(1)
+            trans = trans[:label_match.start() - 1]
 
-            trans = pf.stringify(lines[2], newlines = False)
-            label_match = label_re.search(trans)
-            if label_match:
-                label = label_match.group(1)
-                latex += "\\label{ex:" + label + "}\n"
-
-                trans = trans[:label_match.start() - 1]
-            else:
-                latex += "\n"
-
-            latex += "\\gll " + orig + "\\\\\n"
-            latex += gloss + "\\\\\n"
-            latex += "\\trans `" + trans + "'\n\n"
+            latex += gb4e_fmt_labelled.format(orig, gloss, trans, label=label)
+        else:
+            latex += gb4e_fmt.format(orig, gloss, trans)
 
     latex += "\\end{exe}"
     return pf.RawBlock(latex, format='latex')
@@ -96,7 +104,7 @@ def output_leipzigjs(lst):
         lines = break_plain(li.content[0])
         if len(lines) != 3: continue
 
-        orig, gloss, trans = map(pf.stringify, lines)
+        orig, gloss, trans = map(partial(pf.stringify, newlines=False), lines)
         html += leipzigjs_fmt.format(orig, gloss, trans)
 
     return pf.RawBlock(html, format='html')
