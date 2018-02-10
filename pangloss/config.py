@@ -1,18 +1,25 @@
 from os import path
 from copy import deepcopy
-import yaml
+
+from panflute.elements import MetaString, MetaBool, MetaList
+from pangloss.util import read_config
 
 # default values for pangloss-specific settings
 defaults = {
-        'chapters': False,
-        'chaptersDepth': 1,
-        'exampleLabelFormat': '({})',
-        'exampleRefFormat': ['ex. {}', 'exs. {}'],
-        'rangeDelim': '-',
-        'pairDelim': ',',
-        'lastDelim': ',',
-        'refDelim': ',',
-        'linkReferences': False,
+        'chapters': MetaBool(False),
+        'chaptersDepth': MetaString('1'),
+        'exampleLabelFormat': MetaString('({})'),
+        'exampleRefFormat': MetaList([
+            MetaString('ex. {}'),
+            MetaString('exs. {}')
+            ]),
+        'rangeDelim': MetaString('-'),
+        'pairDelim': MetaString(','),
+        'lastDelim': MetaString(','),
+        'refDelim': MetaString(','),
+        'linkReferences': MetaBool(False),
+        'latexBackend': MetaString('gb4e'),
+        'htmlBackend': MetaString('leipzigjs')
         }
 
 # names of all pangloss settings
@@ -61,8 +68,7 @@ def get_settings(doc=None, internal=True):
             local_config = path.abspath('./pangloss.yaml')
 
         try:
-            with open(local_config) as f:
-                merge(config, yaml.safe_load(f))
+            merge(config, read_config(local_config))
         except IOError:
             pass
 
@@ -110,7 +116,7 @@ def global_config(fmt=None):
         fn = path.join(basedir, 'config-{}.yaml'.format(fmt))
 
     try:
-        with open(fn) as f: config = yaml.safe_load(f)
+        config = read_config(fn)
         return config
     except IOError:
         return {}
