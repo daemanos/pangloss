@@ -22,12 +22,26 @@ local_config_setting = 'glossConfig'
 # base directory for global config files
 basedir = path.expanduser('~/.pangloss')
 
-def get_settings(doc=None):
+def merge_settings(doc):
+    """
+    Merge external settings into a document.
+
+    Arguments:
+        doc -- the document to merge into
+    """
+
+    extern = get_settings(doc, internal=False)
+    for key, val in extern.items():
+        if not (key in doc.metadata):
+            doc.metadata[key] = val
+
+def get_settings(doc=None, internal=True):
     """
     Get the actual values of all pangloss-relevant settings.
 
     Arguments:
         doc -- the current document (default: None)
+        internal -- whether to include document metadata (default: True)
 
     If no document is given, only global settings will be considered.
     """
@@ -53,7 +67,7 @@ def get_settings(doc=None):
             pass
 
         # merge document metadata
-        merge(config, doc.metadata)
+        if internal: merge(config, doc.metadata)
 
     return config
 
