@@ -9,10 +9,10 @@ defaults = {
         'chapters': MetaBool(False),
         'chaptersDepth': MetaString('1'),
         'exampleLabelFormat': MetaString('({})'),
-        'exampleRefFormat': MetaList([
+        'exampleRefFormat': MetaList(
             MetaString('ex. {}'),
             MetaString('exs. {}')
-            ]),
+            ),
         'rangeDelim': MetaString('-'),
         'pairDelim': MetaString(','),
         'lastDelim': MetaString(','),
